@@ -1,0 +1,3 @@
+﻿  ClassesDefinitions.cpp
+C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.35.32215\include\filesystem(13): warning STL4038: The contents of <filesystem> are available only with C++17 or later.
+  Custom DataBase.vcxproj -> C:\Users\anghe\source\repos\Custom DataBase\x64\Debug\Custom DataBase.exe
