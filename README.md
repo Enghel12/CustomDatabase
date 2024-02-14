@@ -9,7 +9,13 @@ The user can create, read, update or delete the data inside the tables, the data
 represented by strings.
 All in all, this program was created to serve as a custom database for the user and to have some features (such as the rating feature) that other databases like MySql do not have.
 
-## Upcomming features
-A unique feature that will be added soon is that the program will have a class that reviews the data stored inside each database and gives it a rating. 
-If there are many problems with the data that is stored, the rating will go down, if the data does not have any issue, the rating will increase and the user 
-will be informed about any issues regarding the data at each execution of the program.
+## Rating system added
+A unique feature worth mentioning is that this program now has a class that can rate the functionality of a database based on the number of issues found. Then, it will give a
+grade to the database(a rating) from 1-10. For now this class can find three issues inside a database:
+
+1.Duplicate/identical data on the same row of a table
+2.An empty database, even though it should have some data in it
+3.Empty table cells
+
+For the time being, the grade can be 10(if no issues are found), 8(one issue is found) and 6(two issues are found). 
+
