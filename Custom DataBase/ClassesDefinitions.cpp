@@ -4,11 +4,13 @@
 #include <memory>
 #include <unordered_map>
 #include <map>
+#include <stack>
 #include <string>
 #include <vector>
 #include <filesystem>
 #include <cstdio> //header to use remove function for files
 #include "ClassesHeader.h"
+#include <algorithm>
 
 using std::cout;
 using std::cin;
@@ -168,7 +170,7 @@ void registerLogin() {
 
                 //if the password does not contain upper chars, tell the user to use them
                 if (hasUpperChar == false) {
-                    cout << "Error, password must contain upper characters also\n";
+                    cout << "Error, password must contain upper characters also\n\n";
                     cout << "Try again \n";
                     cin >> password;
                     system("cls");
@@ -176,7 +178,7 @@ void registerLogin() {
 
                 //if the character is not digit, execute this loop again
                 if (hasDigits == false) {
-                    cout << "Error, password must contain at least one digit\n";
+                    cout << "\n\nError, password must contain at least one digit\n\n";
                     cout << "Try again\n";
                     cin >> password;
                     system("cls");
@@ -208,6 +210,11 @@ void registerLogin() {
 
             //closing the file
             myFile.close();
+
+            cout << "Account created successfully!\n\n";
+            cout << "Press any key to continue: \n\n";
+            callExceptionMethods(&user_input, 'i');
+            system("cls;");
         }
         else if (user_input == 2) {
             system("cls");
@@ -221,10 +228,10 @@ void registerLogin() {
                 userFound = false;
                 passwordFound = false;
 
-                std::cout << "Enter username: ";
+                std::cout << "Enter username: \n";
                 cin >> name;
 
-                std::cout << "Enter password: ";
+                std::cout << "Enter password: \n";
                 cin >> password;
 
                 std::fstream openFile;
@@ -251,8 +258,8 @@ void registerLogin() {
                     openFile.close();
                 }
                 else {
-                    std::cerr << "Error, file could not be opened\n";
-                    cout << "Press any key to continue \n";
+                    std::cerr << "Error, file could not be opened\n\n";
+                    cout << "Press any key to continue \n\n";
                     cin >> anyUserInput;
                     system("cls");
 
@@ -267,7 +274,7 @@ void registerLogin() {
 
             } while (!userFound || !passwordFound);
 
-            std::cout << "Account accepted!\n";
+            std::cout << "Account accepted!\n\n";
             cout << "Press any key to continue: \n";
             cin >> anyUserInput;
         }
@@ -310,11 +317,11 @@ void DataBase::createDeleteDatabase() {
     findDatabases.close();
 
     //if the vector's size is greater then 1 it means that there are available databases, if so execute this condition
-    if (currentDatabases.size() > 1) {
+    if (currentDatabases.size() >= 1) {
         cout << "What would you like to do with a database: 1.Create 2.Delete or 3.Skip\n";
         callExceptionMethods(&user_input, 'i');
     }
-    else if(currentDatabases.size() == 1){
+    else if (currentDatabases.size() == 0) {
        
         cout << "For now there are no available databases, would you like to create one? \n";
         cout << "1.Yes 2.No(if you enter 2, the program will stop executing!)\n";
@@ -337,7 +344,7 @@ void DataBase::createDeleteDatabase() {
     
     
     //However if there are no databases available but the user wants to create one, execute this statement
-    if(currentDatabases.size() == 1 && createDatabase == 1){
+    if(currentDatabases.size() == 0 && createDatabase == 1){
         user_input = 1;
     }
     else if (currentDatabases.size() == 0 && createDatabase == 2) {
@@ -588,7 +595,7 @@ void DataBase::createDeleteDatabase() {
             }
 
         }
-
+        
 
 }
 
@@ -604,8 +611,156 @@ void handleDatabases::accessBaseClassMethods() {
 
 
 }
-//defining the second method of the child class
 
+//when the user updates a table this function positions the new data to the middle of each table cell
+void positionDataToMiddle(std::string &currentTableCell, std::string newData) {
+
+
+    
+    int middleCharPos = 0, leftCharactersPos = 0, rightCharactersPos = 0;
+
+    //this strings represent separate parts of the user input(leftPiece for all the chars from left)
+    //and right piece(for all the characters of the string that are from the middle to the right)
+    
+    std::string leftPiece = "", rightPiece = "";
+
+    //and this will hold the character placed to the middle of the newData
+    std::string middleChar = "";
+
+    //finding the position of the middlecharacter (inside the string newData)
+    middleCharPos = newData.length() / 2;
+
+    //storing the middle character from the new data string
+    middleChar = newData[middleCharPos];
+
+
+    //storing the characters from the new data string apart from the middle character
+    for (size_t i = 0; i < middleCharPos; i++) {
+        leftPiece += newData[i];
+    }
+
+    for (size_t j = middleCharPos + 1; j < newData.length(); j++) {
+        rightPiece += newData[j];
+    }
+
+    //finding the middle of the table cell
+    int cellMiddlePos = currentTableCell.length() / 2;
+
+    //storing the middle character of the newData string to the middle of the table cell
+    currentTableCell.replace(cellMiddlePos, 1, middleChar);
+
+    //and storing the characters from the left of the string to the left of the table cell
+    currentTableCell.replace(cellMiddlePos - leftPiece.length(), leftPiece.length(), leftPiece);
+
+    //and the characters from the right of the string(new data string) to the right of the table cell
+    currentTableCell.replace(cellMiddlePos + 1, rightPiece.length(), rightPiece);
+}
+
+//this function is used to update the content of a notepad file by rewriting it
+void updateTablesInDatabase(std::vector<std::vector<std::string>> &updatedTable, int tablePosition, std::string database, int rows) {
+    
+    tablePosition++;
+
+    //this vector will hold the content of the database and the data from the updated table
+    std::vector<std::string> fileContent;
+
+    //opening the database to copy all the data from it and store it temporarily to vector: 'fileContent'
+    std::ifstream openDatabase(database);
+
+    std::string eachTableRow = "";
+
+    if (openDatabase.is_open()) {
+
+        std::string eachDocumentLine = "";
+
+        while (getline(openDatabase, eachDocumentLine)) {
+            
+           //moving the content of the notepad file(currentDatabase) to the vector
+            fileContent.push_back(eachDocumentLine);
+        }
+
+    }
+    openDatabase.close();
+    system("cls");
+
+    for (int i = 0; i < rows; i++) {
+        for (int j = 0; j < 5; j++) {
+            //storing the content of each table row to this string
+            eachTableRow += updatedTable[i][j];
+        }
+      
+        //storing each updated table row to the vector that holds all the data from the notepadfile(database)
+        fileContent[tablePosition] = eachTableRow;
+        tablePosition++;
+
+        eachTableRow = "";
+    }
+
+    //opening the same database to override its data
+    std::ofstream storeDataBack(database);
+
+    if (storeDataBack.is_open()) {
+
+        //storing all the data(including the updated table) back to the database
+        for (int i = 0; i < fileContent.size(); i++) {
+            storeDataBack << fileContent[i] << "\n";
+        }
+    }
+    storeDataBack.close();
+    
+}
+
+//this function is used to extract data from the table
+void extractTableData(std::string tableRowContent, std::vector<std::string> &eachTableRow) {
+    eachTableRow.clear();
+
+    //this stack will hold temporarily the data on each table cell
+    std::stack<char> tableCells;
+
+    //this string will store temporarily only the characters from one table cell
+    std::string oneTableCell = "";
+
+    int barNumber = 0;
+
+    for (char ch : tableRowContent) {
+
+        if (ch == '|')
+            barNumber++;
+
+        //storing all the table characters to the stack
+        if (barNumber < 2) {
+            tableCells.push(ch);
+        }
+
+        if (barNumber == 2) {
+            barNumber--;
+            tableCells.push(ch);
+
+            //moving each character from the stack to the string
+            while (tableCells.empty() == false) {
+                
+                //adding the characters to the string one by one
+                oneTableCell += tableCells.top();
+
+                //deleting the characters from the stack one by one
+                tableCells.pop();
+            }
+
+            //reversing the string to have the characters placed in the right order
+            std::reverse(oneTableCell.begin(), oneTableCell.end());
+
+            //now we will store the data from the string to a vector of strings
+            eachTableRow.push_back(oneTableCell);
+
+            //resetting the string
+            oneTableCell = "";
+
+        }
+       
+    }
+}
+
+//defining the second method of the child class
 void handleDatabases::CRUD() {
     
     bool databaseFound = false;
@@ -731,7 +886,7 @@ void handleDatabases::CRUD() {
        
             cout << "\n\nYou can now: \n";
             cout << "1.Create table 2.Print content of a table 3.Update a table 4.Delete a table\n";
-            cout << "Or press any other number to continue : \n";
+            cout << "Or press any other number to exit\n";
     
             callExceptionMethods(&user_input, 'i');  //calling this function to validate the input
             system("cls");
@@ -747,7 +902,7 @@ void handleDatabases::CRUD() {
         
         do {
           
-         //1.Create table 2.Read table 3.Update table 4.Delete table
+         //1.Create table 2.Read table 3.Update table 4.Delete table 
             
             if (user_input == 1) {
                 cout << "Enter the name of the table: \n";
@@ -790,10 +945,10 @@ void handleDatabases::CRUD() {
                             //add the character '|' before the first word on each row to create the lines inside the table
                             if (firstWord) {
                                 firstWord = false;
-                                table[row][col] = "|     " + columnData + "     |"; //ading the user input to each column
+                                table[row][col] = "|     " + columnData + ":" + "     |"; //ading the user input to each column
                             }
                             else {
-                                table[row][col] =  "     " + columnData + "     |";
+                                table[row][col] =  "     " + columnData + ":" + "     |";
                             }
                            
                             //storing all the characters from the first row to this string
@@ -948,12 +1103,17 @@ void handleDatabases::CRUD() {
                             cout << endl;
                         }
 
-                        cout << "Press anything to store " << tableName << " to the database : " << databaseName << "\n";
+                        cout << "\n\nPress anything to store " << tableName << " to the database : " << databaseName << "\n";
                         callExceptionMethods(&user_input, 'i');
                         system("cls");
 
                         //since the user finished with the table, this boolean becomes true
                         user_finished = true;
+
+                        system("cls");
+                        cout << "Table stored! \n";
+                        cout << "Press any number to continue: \n";
+                        callExceptionMethods(&user_input, 'i');
 
                         //storing the table to the database that the user is connected to
 
@@ -966,6 +1126,12 @@ void handleDatabases::CRUD() {
 
                     cout << "Press anything to store " << tableName << " to the database : " << databaseName << "\n";
                     callExceptionMethods(&user_input, 'i');
+
+                    cout << "Table " << tableName << " was successfully saved!\n";
+                    cout << "Press any number to continue: \n";
+                    callExceptionMethods(&user_input, 'i');
+                    
+                    system("cls");
                     
                 }
 
@@ -1086,10 +1252,6 @@ void handleDatabases::CRUD() {
 
                     }
 
-                    cout << "Table was successfully saved! \n";
-                    cout << "Press any key to continue: \n";
-                    std::string anyKey = "";
-                    cin >> anyKey;
                     system("cls");
                    
                 }
@@ -1122,17 +1284,436 @@ void handleDatabases::CRUD() {
             }//if the user wants to update the content of a table, execute this function
             else if (user_input == 3) {
 
+                cout << "Search the database and enter the name of the table that you want to update \n";
+
+                std::fstream accessDatabase(databaseName, std::ios::in);
+
+                if (accessDatabase.is_open()) {
+                    std::string storeAllDocumentLines = "";
+
+                    while (getline(accessDatabase, storeAllDocumentLines)) {
+
+                        cout << storeAllDocumentLines << endl;
+                    }
+                }
+                accessDatabase.close();
+
+                bool tableExists = false;
                 
+               
+                std::string currentTableName = "", tableRowWithoutSpaces = "";
+                cout << "\nEnter name here: \n";
+                cin >> currentTableName;
+                system("cls");
+                
+                std::fstream openCurrentDatabase(databaseName, std::ios::in);
+                int tablePositionInFile = 0, tableRows= -1;
+
+                int tableMiddle = 0;
+                bool executedOnce = false;
+
+                //opening the database to start looking for the table that the user wants to update
+                if (openCurrentDatabase.is_open()) {
+                    
+                    std::string contentOnEachLine = "";
+                    while (getline(openCurrentDatabase, contentOnEachLine)) {
+
+                        //now we look for the name of the table on each document line
+
+                        if (!tableExists) {
+                            for (char ch : contentOnEachLine) {
+
+                                if (!isspace(ch)) {
+                                    tableRowWithoutSpaces += ch;
+                                }
+                            }
+                        }
+                        
+                        
+                        if (currentTableName == tableRowWithoutSpaces) {
+                            tableExists = true;
+                        }
+
+                        if (tableExists) {
+                            
+                            //counting the number of columns of the table
+                            if (contentOnEachLine != "") tableRows++;
+                            else break;
+                        }
+
+                        tableRowWithoutSpaces = "";
+                        
+                        if (!tableExists)
+                            tablePositionInFile++;
+                    }
+                    openCurrentDatabase.close();
+
+                    if (tableExists) {
+                        int row = 0, column = 0;
+                        std::vector<std::string> storeEachTableRow;
+
+                        std::vector<std::vector<std::string>> theTable;
+
+
+                        //opening the same file to print the table so that the user can update it
+                        std::fstream openSameFile(databaseName, std::ios::in);
+                        int rows = tableRows;
+                        
+
+                        if (openSameFile.is_open()) {
+                            int currentDocumentLine = -1;
+                            contentOnEachLine = "";
+
+                            while (getline(openSameFile, contentOnEachLine)) {
+                                std::vector<std::string> DataOnTableRow;
+
+                                //if we stored all the content from the table to the 2d vector
+                                //we will stop searching the file
+                                if (tableRows == 0)
+                                    break;
+
+                                //when we reach the table, this condition will execute
+                                if (currentDocumentLine >= tablePositionInFile) {
+                                    tableRows--;
+
+
+                                    //finding the middle of the table
+                                    if (executedOnce == false)
+                                        tableMiddle = contentOnEachLine.size() / 2;
+                                    executedOnce = true;
+
+                                    
+                                    extractTableData(contentOnEachLine, storeEachTableRow);
+
+                                    //storing each vector(table row) to the 2d vector(the table itself)
+                                    theTable.push_back(storeEachTableRow);
+
+
+                                }
+                                else
+                                    currentDocumentLine++;
+                            }
+                        
+                        }
+                        openSameFile.close();
+
+                        system("cls");
+                        cout << "Table found! Here is the table: \n\n";
+
+                       
+                        std::string containsWhiteSpaces = "";
+
+                        //adding spaces to this string
+                        while (tableMiddle > 0) {
+                            containsWhiteSpaces += " ";
+                            tableMiddle--;
+                        }
+
+                        int tableFinishedUpdating = 0;
+                        int userChoice = 0;
+                        bool loopExecutedOnce = false, dataEntered = false;
+
+                        do {
+
+                            if (dataEntered)
+                                cout << "                    Here is the updated table: \n\n";
+
+                            //printing the name of the table to the middle of the table
+                            cout << containsWhiteSpaces << currentTableName << "\n\n";
+
+
+                            //printing the table
+                            for (int i = 0; i < rows; i++) {
+                                for (int j = 0; j < 5; j++) {
+                                    cout << theTable[i][j];
+                                }
+                                cout << endl;
+                            }
+
+
+                            if (loopExecutedOnce) {
+                                cout << "\n\nWould you like to add new data to the table ? 1.Yes 2.No\n";
+                               
+
+                                callExceptionMethods(&userChoice, 'i');
+
+                                //if userChoice is 2
+                                if (userChoice == 2) {
+                                    tableFinishedUpdating = 1;
+
+                                    system("cls");
+                                    cout << "Everything was successfully stored to the table \n";
+                                    cout << "Press any number to continue: \n";
+                                    callExceptionMethods(&userChoice, 'i');
+                                }
+                                    
+                            }
+
+                            if (tableFinishedUpdating == 0) {
+
+
+                                cout << "\n\n";
+                                cout << "Enter the row where you want to update data: \n";
+                                cin >> row;
+
+                                cout << "Now enter the column where you want to update data: \n";
+                                cin >> column;
+
+                                //if the user input is not a valid position inside the table, execute this condition
+                                if (row > rows - 1 || column > 4) {
+                                    system("cls");
+
+                                    cout << "Error, this position does not exist! \n\n";
+                                    cout << "Reason, the number is too great\n\n";
+                                    cout << "Enter any number to continue: \n\n";
+
+                                    int tryAgain = 0;
+                                    callExceptionMethods(&tryAgain, 'i');
+
+                                    system("cls");
+                                }
+                                else {
+
+                                    system("cls");
+
+                                    cout << containsWhiteSpaces << currentTableName << "\n\n";
+
+                                    //printing the table with an empty cell 
+                                    for (int i = 0; i < rows; i++) {
+                                        for (int j = 0; j < 5; j++) {
+
+                                            if (i == row && j == column) {
+                                                int cellWidth = theTable[i][j].length();
+
+                                                //creating an empty cell inside the table where user input will be stored
+                                                std::string emptyCell = "";
+
+
+                                                while (cellWidth > 1) {
+                                                    cellWidth--;
+
+                                                    emptyCell += " ";
+                                                }
+
+                                                emptyCell += "|";
+
+                                                if (column > 0)
+                                                    cout << emptyCell;
+                                                else {
+                                                    emptyCell.erase(0, 1);
+
+                                                    cout << "|" << emptyCell;
+                                                }
+                                                
+                                                    
+                                            }
+                                            else {
+                                                cout << theTable[i][j];
+                                            }
+
+                                        }
+                                        cout << endl;
+                                    }
+
+                                    //taking new data from the user input
+                                    cout << "Enter the new data in the empty cell(the one you selected)\n";
+                                    std::string newData = "";
+                                    cin >> newData;
+                                    system("cls");
+
+
+                                    //here we clear the previous data from the current table cells
+                                    for (size_t i = 1; i < theTable[row][column].length() - 1; i++) {
+                                        theTable[row][column].replace(i, 1, " ");
+                                    }
+
+
+                                    //making sure the size of the new data can fit the size of the table cell
+                                    while (newData.length() > theTable[row][column].length() - 3) {
+                                        system("cls");
+                                        cout << "Error data is too large to fit the table cell, try again \n";
+                                        cout << "Enter the data here: \n";
+                                        cin >> newData;
+                                    }
+
+                                    //calling this function to position the new user input to the middle of each table cell
+                                    positionDataToMiddle(theTable[row][column], newData);
+
+                                }
+                            }
+
+                            loopExecutedOnce = true;
+                         
+
+                        } while (tableFinishedUpdating == 0);
+                        
+                        system("cls");
+
+                        //storing the modified table back to the notepad file
+                        updateTablesInDatabase(theTable, tablePositionInFile, databaseName, rows);
+                        
+                    }
+                    else {
+                        cout << "Error, the table: " << currentTableName << " does not exist! \n";
+                        cout << "Press any key to continue: \n";
+                        std::string currentUserInput = "";
+                        cin >> currentUserInput;
+                        system("cls");
+                    }
+                }
+                tableExists = false;
 
             }//if the user wants to delete a specific table, execute this condition
             else if (user_input == 4) {
+                
+                //this vector will hold all the rows inside the notepad file(database)
+                std::vector<std::string> containsDocumentLines;
 
 
+                //this 2 variables will tell us the position of the table that will be deleted
+                //and its number of rows(so that we can delete the whole table and not miss a row)
+                int deletionPosition = 0;
+                int nrOfRowsToBeDeleted = 0;
 
+               system("cls");
+               cout << "Here are all the tables that exist inside database " << databaseName << "\n\n\n";
+
+               //opening the database to print to the user all the available tables
+               std::ifstream openCurrentDatabase(databaseName);
+
+               if (openCurrentDatabase.is_open()) {
+
+                   std::string storeDocumentLines = "";
+
+                   while (getline(openCurrentDatabase, storeDocumentLines)) {
+                       cout << storeDocumentLines << endl;
+
+                   }
+               }
+               openCurrentDatabase.close();
+
+               cout << "\n\n";
+               cout << "Enter the name of the table that you want to delete: \n";
+               cin >> tableName;
+
+               std::fstream deleteTables;
+               deleteTables.open(databaseName, std::ios::in);
+
+               std::string notepadLines = "", firstTableRow = "";
+
+               bool tableFound = false;
+               bool tablePrinted = false;
+
+               if (deleteTables.is_open()) {
+
+                   system("cls");
+
+                   //traversing the notepad file(the database)
+                   while (getline(deleteTables, notepadLines)) {
+
+                       //storing to the vector all the document lines
+                       containsDocumentLines.push_back(notepadLines);
+
+                       //traversing every line of the notepad file
+                       for (char c : notepadLines) {
+
+                           //storing to the string down below all the characters that are not whitespaces
+                           if (!isspace(c)) {
+                               firstTableRow += c;
+                           }
+                       }
+
+                       //if we found the table name after removing the whitespaces,execute this condition
+                       if (firstTableRow == tableName) {
+                           tableFound = true;
+                       }
+
+                       //if the table was found, we print it here
+                       if (tableFound == true && tablePrinted == false) {
+                           nrOfRowsToBeDeleted++;
+                           cout << notepadLines << "\n";
+                       }
+
+                       //if we reach the end of the table that we found, stop the loop
+                       if (tableFound && notepadLines == "") {
+                           tablePrinted = true;
+                       }
+                           
+
+                       firstTableRow = "";
+
+                       //increasing this variable until we find the position of the table that will be deleted
+                       
+                       if(!tableFound)
+                       deletionPosition++;
+                   }
+
+                   openCurrentDatabase.close();
+
+                   //if the table was found, execute this condition
+                   if (tableFound) {
+                       cout << "Table " << tableName << " was found!\n";
+                       cout << "Are you sure that you want to delete it ? 1.Yes 2.No\n";
+                       callExceptionMethods(&user_input, 'i');
+
+                       //execute this statement if the user will delete the table
+                       if (user_input == 1) {
+                           system("cls");
+
+
+                           //deleting the table from the database:
+
+                           //we will first delete all the table data that was stored in this vector
+                           containsDocumentLines.erase(containsDocumentLines.begin() + deletionPosition, containsDocumentLines.begin() + deletionPosition + nrOfRowsToBeDeleted);
+
+                           //then we will store back the content of the notepadfile(without the deleted table):
+                           std::ofstream putBackContent(databaseName);
+
+                           if (putBackContent.is_open()) {
+
+                               //here we are adding back the tables to the database(except for the one deleted)
+                               for (size_t i = 0; i < containsDocumentLines.size(); i++) {
+                                   putBackContent << containsDocumentLines[i] << endl;
+                               }
+                           }
+                           putBackContent.close();
+
+                           system("cls");
+                           cout << "Table " << tableName << " was deleted successfully! \n\n";
+
+                           cout << "Enter any key to continue : \n";
+                           std::string takeUserInput = "";
+
+                           cin >> takeUserInput;
+                           system("cls");
+                       }
+
+                       if (user_input == 2) {
+                           system("cls");
+                           cout << "Deletion canceled! \n";
+                           cout << "Press any key to continue : \n";
+                           std::string userStringInput = "";
+                           cin >> userStringInput;
+                           system("cls");
+                       }
+                   }
+                   else {
+                       //if the table name does not exist, execute this condition
+                       cout << "Error, the table that you entered does not currently exist so it cannot be deleted!\n";
+                       cout << "Try again later!\n";
+                       cout << "Press anything to continue: \n";
+                       std::string anyKey = "";
+                       cin >> anyKey;
+                       system("cls");
+                   }
+
+
+               }
             }//for any user input different than 1,2,3,4, execute this condition
             else {
-
-
+                system("cls");
+                
+                break;
 
             }
             
@@ -1160,10 +1741,10 @@ void handleDatabases::CRUD() {
 
 
             //if there are any tables left, ask the user if he/she wants again to create, read,update,delete a new table
-            if (!isDatabaseEmpty) {
+            if (!isDatabaseEmpty){
                 system("cls");
-                cout << "Before you leave do you want to: 1.Create one more table 2.Read a new table\n";
-                cout << "3.Update a new table 4.Delete one more table or any other number to leave\n";
+                cout << "\nBefore you leave do you want to: \n\n1.Create one more table \n\n2.Read a new table\n\n";
+                cout << "3.Update a new table \n\n4.Delete one more table \n\nOr any other number to leave\n";
                 callExceptionMethods(&user_input, 'i');
 
                 if (user_input >= 1 && user_input <= 4) user_finished = false;
@@ -1174,7 +1755,7 @@ void handleDatabases::CRUD() {
                 system("cls");
 
                 //option1: Create a new table to work with or option2: Leave this section for now
-                cout << "Now there are no more tables left, would you like to 1.Create one more table\n";
+                cout << "Now there are no more tables left, would you like to:\n\n 1.Create one more table\n\n";
                 cout << "Or any other number to leave this section : \n";
                 callExceptionMethods(&user_input, 'i');
 
@@ -1194,5 +1775,236 @@ void handleDatabases::CRUD() {
         cout << "Goodbye!\n";
         exit(0);
     }
+
+
+}
+
+void rateDatabase::giveRating(bool duplicatesInTables, bool emptyDatabase) {
+
+    system("cls");
+
+    //here a rating is created based on the number of issues found
+    cout << "Troubleshoot finished, press any number to see the results: \n";
+    int userInput = 0;
+
+    callExceptionMethods(&userInput, 'i');
+    system("cls");
+
+    if (duplicatesInTables) {
+        
+        cout << "One issue was found, there are duplicates on at least one table row! \n\n";
+    }
+
+    if (emptyDatabase) {
+        cout << "A huge issue was found, the database that you tried to access is empty! \n\n";
+    }
+
+    if (!duplicatesInTables && !emptyDatabase) {
+        cout << "There are no issues with this database :D \n";
+    }
+
+    cout << "Press any key to see how functional is the database: \n";
+    std::string anyKey = "";
+    cin >> anyKey;
+
+
+    system("cls");
+
+    int grade = 10;
+
+    if (duplicatesInTables && emptyDatabase) {
+        grade -= 4;
+    }
+    else if (duplicatesInTables || emptyDatabase) {
+        grade -= 2;
+    }
     
+    cout << "This database grade is " << grade << "\n\n";
+    cout << "This represents how functional the database on a scale of 1-10\n\n";
+
+    if (grade == 8)
+        cout << "The database has a few issues but it's functional\n\n";
+    else if (grade == 6)
+        cout << "The database has some issues, it's not so reliable \n\n";
+    else
+        cout << "This database is in perfect condition, 10/10\n\n";
+
+    cout << "Thank you for using custom database!! \n\n";
+    cout << "Press any key to stop the program : \n\n";
+
+    cin >> anyKey;
+
+
+}
+
+void rateDatabase::findPotentialIssues() {
+
+    int userChoice = 0;
+
+    cout << "Before a rating can be given, you need to select a database \n\n";
+    cout << "Here is a list with all the available databases: \n\n";
+
+    std::string databaseName = "";
+    std::vector<std::string> storeDatabaseNames;
+
+    //opening the file that contains all the databases that exist
+    std::ifstream openFileContainingDatabases("allDatabases.txt");
+
+    if (openFileContainingDatabases.is_open()) {
+
+        std::string eachDocumentLine = "";
+
+        while (getline(openFileContainingDatabases, eachDocumentLine)) {
+
+            cout << eachDocumentLine << endl;
+
+            //storing to this vector all the database names
+            storeDatabaseNames.push_back(eachDocumentLine);
+        }
+
+    }//closing the file
+    openFileContainingDatabases.close();
+
+
+
+    cout << "\n\nEnter the name of the database: \n";
+    cin >> databaseName;
+
+    bool databaseFound = false;
+
+    do {
+
+        //finding if the name entered by the user is a valid database
+        for (std::string currentDatabase : storeDatabaseNames) {
+            
+            if (currentDatabase == databaseName)
+                databaseFound = true;
+        }
+
+        
+        if (databaseFound) {
+            system("cls");
+            cout << "\n\nDatabase " << databaseName << " was found!\n\n";
+
+            //take new user input
+            cout << "Press 1 to let the program troubleshoot this database and the rate it \n\n";
+            cout << "Or press any other number to exit the program \n";
+            cin >> userChoice;
+
+        }//execute this condition in case the database name typed by the user is not a valid database
+        else {
+            system("cls");
+            cout << "Error, database " << databaseName << " does not exist, try again\n\n";
+            cout << "Enter the name here: \n";
+            cin >> databaseName;
+        }
+
+
+    } while (databaseFound == false);
+
+
+    //here we stop the program if user choice is not 1
+    if (userChoice != 1)
+        exit(0);
+
+
+    /*here the program will troubleshoot the current database and search for potential issues
+    if there are no issues with the database, the program will give it the highest rating
+    if there are many issues such as duplicate data inside tables or empty databases etc..
+    the program will give it a small rating  */
+
+
+    bool duplicatesInTables = false, emptyDatabase = true;
+
+
+    //here the program checks if the database ie empty:
+    std::ifstream checkIfEmpty(databaseName);
+
+    if (checkIfEmpty.is_open()) {
+
+        std::string eachLineFromNotepad = "";
+
+        while (getline(checkIfEmpty, eachLineFromNotepad)) {
+
+            if (eachLineFromNotepad != "") {
+                emptyDatabase = false;
+                break;
+            }
+               
+        }
+    }
+    checkIfEmpty.close();
+
+
+    //now the program will look for duplicates inside each table(duplicates meaning identical data on the same table row)
+    bool tableFound = false;
+    int barNumber = 0;
+
+    std::vector<std::string> allDataOnOneRow;
+
+    std::ifstream lookForDuplicates(databaseName);
+
+    if (lookForDuplicates.is_open()) {
+
+        std::string everyLine = "";
+
+        while (getline(lookForDuplicates, everyLine)) {
+
+
+            if (everyLine[0] == '|')
+                tableFound = true;
+           
+            if (everyLine == "")
+                tableFound = false;
+
+
+            //if we reached a table we will store the data to a vector of strings to start looking for duplicates
+            if (tableFound) {
+                
+                std::string tableCell = "";
+
+                //traversing the string that holds each table row
+                for (size_t i = 0; i < everyLine.length(); i++) {
+
+
+                    if (everyLine[i] == '|') barNumber++;
+
+                    //taking the data from each table cell
+                    if (everyLine[i] != '|' && everyLine[i] != ' ' && barNumber < 2)
+                        tableCell += everyLine[i];
+
+                    if (barNumber == 2) {
+                        barNumber--;
+                    
+
+                        //storing each table cell to this vector
+                        allDataOnOneRow.push_back(tableCell);
+                        tableCell = "";
+                    }
+                }
+
+                //sorting the data in vector
+                sort(allDataOnOneRow.begin(), allDataOnOneRow.end());
+
+                //traversing the vector that holds the data from each table cell and looking for duplicates
+                for (size_t i = 0; i < allDataOnOneRow.size()-1; i++) {
+
+                    //looking for duplicates from the table that are stored in this vector
+                    if (allDataOnOneRow[i] == allDataOnOneRow[i + 1])
+                        duplicatesInTables = true;
+
+                }
+
+
+                allDataOnOneRow.clear();
+            }
+            
+            //if we found duplicate data inside the vector, we will stop searching 
+            if (duplicatesInTables)
+                break;
+        }
+    }
+    lookForDuplicates.close();
+ 
+    giveRating(duplicatesInTables, emptyDatabase);
 }

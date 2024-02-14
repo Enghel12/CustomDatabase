@@ -7,6 +7,10 @@ using std::cin;
 
 void registerLogin();
 void callExceptionMethods();
+void updateTablesInDatabase(std::vector<std::vector<std::string>> &updatedTable, int tablePosition, std::string database, int rows);
+void extractTableData(std::string tableRowContent, std::vector<std::string> &eachTableRow);
+void positionDataToMiddle(std::string& currentTableCell, std::string newData);
+
 
 //The purpose of this class is to validate user input before sending it to a data base
 class Exceptions {
@@ -105,6 +109,20 @@ public:
     void CRUD();
 
     
+};
+
+/*this class can be used to rate the functionality of a database
+the rating is determined by the number of issues found inside the database*/
+class rateDatabase {
+
+public:
+
+    //this function will look for potential issues in the database and inform the user if issues are found
+    void findPotentialIssues();
+
+    //this is the method that will give a rating to a database based on the number of issues found
+    void giveRating(bool duplicateInTables, bool emptyDatabase);
+
 };
 
 

@@ -23,6 +23,24 @@ int main()
     //calling the second method of child class
     childClassMethood.CRUD();
     
+
+    cout << "Before you leave would you like to : \n\n1.See the rating of a database based on its functionality? \n\n2.Exit completely\n";
+    int newUserChoice = 0;
+
+    cin >> newUserChoice;
+    system("cls");
+
+    system("cls");
+    if (newUserChoice != 1)
+        exit(0);
+
+   //creating an object of this class to call its functions
+    rateDatabase callFunctions;
+
+    //calling the function of class 'rateDatabase' to search for potential issues and create a rating
+    callFunctions.findPotentialIssues();
+
     
     return 0;
 }
+

@@ -1,3 +1,9 @@
 ﻿  ClassesDefinitions.cpp
 C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.35.32215\include\filesystem(13): warning STL4038: The contents of <filesystem> are available only with C++17 or later.
-  Custom DataBase.vcxproj -> C:\Users\anghe\source\repos\Custom DataBase\x64\Debug\Custom DataBase.exe
+C:\Users\anghe\OneDrive\Desktop\Proiecte la care mai pot lucrez C++\Custom DataBase\Custom DataBase\ClassesDefinitions.cpp(631,41): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\anghe\OneDrive\Desktop\Proiecte la care mai pot lucrez C++\Custom DataBase\Custom DataBase\ClassesDefinitions.cpp(647,54): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\anghe\OneDrive\Desktop\Proiecte la care mai pot lucrez C++\Custom DataBase\Custom DataBase\ClassesDefinitions.cpp(1382,83): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\anghe\OneDrive\Desktop\Proiecte la care mai pot lucrez C++\Custom DataBase\Custom DataBase\ClassesDefinitions.cpp(1486,88): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+  Custom DataBase.cpp
+  Generating Code...
+  Custom DataBase.vcxproj -> C:\Users\anghe\OneDrive\Desktop\Proiecte la care mai pot lucrez C++\Custom DataBase\x64\Debug\Custom DataBase.exe
