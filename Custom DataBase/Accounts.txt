@@ -7,4 +7,4 @@
                                            **Runescape**
 |     Username:     |     Password:     |     id:     |     money:     |     lvl:     |
 |       Mizoo       |       3m1eqa      |     2341    |      1411      |      141     |
-|       Ghsqqn      |      eqwas1       |     2331    |       3331     |      391     |
+|       Ghsqqn      |      eqwas1       |     2331    |       3331     |      123     |

@@ -121,7 +121,7 @@ public:
     void findPotentialIssues();
 
     //this is the method that will give a rating to a database based on the number of issues found
-    void giveRating(bool duplicateInTables, bool emptyDatabase);
+    void giveRating(bool duplicateInTables, bool emptyDatabase, bool emptyCells, size_t emptyCellsNumber);
 
 };
 

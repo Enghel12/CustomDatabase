@@ -1779,61 +1779,75 @@ void handleDatabases::CRUD() {
 
 }
 
-void rateDatabase::giveRating(bool duplicatesInTables, bool emptyDatabase) {
+void rateDatabase::giveRating(bool duplicateInTables, bool emptyDatabase, bool emptyCells, size_t emptyCellsNumber) {
 
     system("cls");
 
+
+
     //here a rating is created based on the number of issues found
     cout << "Troubleshoot finished, press any number to see the results: \n";
-    int userInput = 0;
+    int userInput = 0, grade = 10;
 
     callExceptionMethods(&userInput, 'i');
     system("cls");
 
-    if (duplicatesInTables) {
+    //if the database if empty, the grade becomes 8
+    if (emptyDatabase && !emptyCells && !duplicateInTables) {
+        grade -= 2;
+
+        cout << "The rating is " << grade << " /10\n\n";
+        cout << "This is because one issue was found: \n\n";
+        cout << "This database is functional but empty! Please restart the program and fix this issue\n\n";
+        cout << "To fix this issue, add a table to this database and fill it with data \n";
+    } 
+    else if (!emptyDatabase && emptyCells && duplicateInTables) {
+        //if there are 2 issues inside the database(duplicates and empty table cells) the grade becomes 6
+        grade -= 4;
+
+        cout << "The rating is " << grade << " /10\n\n";
+        cout << "This is because two issues were found! : \n\n";
+        cout << "Inside some tables, there are empty cells \n\n";
+        cout << "And in other tables, there are duplicates on the same row\n\n";
+
+        cout << "To locate this issue, print all the tables from this database \n";
+        cout << "And then to fix this issue, fill the empty cells with data and delete the duplicates\n";
+    }
+    else if(!emptyDatabase && emptyCells || duplicateInTables) {
+        //if the database if full but there are empty table cells/ duplicates in tables, grade becomes 8
+        grade -= 2;
+
+        cout << "The rating is " << grade << " /10\n\n";
+        cout << "This is because one issue was found: \n\n";
         
-        cout << "One issue was found, there are duplicates on at least one table row! \n\n";
+        if (emptyCells) {
+            cout << "Some table cells don't have any data\n\n";
+            cout << "Number of empty cells: " << emptyCellsNumber << "\n\n";
+            cout << "Please restart the program and read the tables to see where the empty cells are\n";
+            cout << "And then add some data to these tables to fix this issue\n";
+
+        }
+        else if (duplicateInTables) {
+            cout << "There are duplicates(identical) data inside table cells \n\n";
+            cout << "Please restart the program and read the tables to find where this issue occurs\n";
+            cout << "And then delete the duplicates from the tables to fix this issue \n";
+
+        }
+           
+    }
+  
+
+    if (!emptyDatabase && !emptyCells && !duplicateInTables) {
+        cout << "The rating is " << grade << " /10\n\n";
+        cout << "This database is in perfect condition !! \n";
+        
     }
 
-    if (emptyDatabase) {
-        cout << "A huge issue was found, the database that you tried to access is empty! \n\n";
-    }
-
-    if (!duplicatesInTables && !emptyDatabase) {
-        cout << "There are no issues with this database :D \n";
-    }
-
-    cout << "Press any key to see how functional is the database: \n";
-    std::string anyKey = "";
-    cin >> anyKey;
-
+    cout << "\nPress any key to close the program \n\n";
+    cout << "Thank you for using this Custom Database\n";
+    cin >> userInput;
 
     system("cls");
-
-    int grade = 10;
-
-    if (duplicatesInTables && emptyDatabase) {
-        grade -= 4;
-    }
-    else if (duplicatesInTables || emptyDatabase) {
-        grade -= 2;
-    }
-    
-    cout << "This database grade is " << grade << "\n\n";
-    cout << "This represents how functional the database on a scale of 1-10\n\n";
-
-    if (grade == 8)
-        cout << "The database has a few issues but it's functional\n\n";
-    else if (grade == 6)
-        cout << "The database has some issues, it's not so reliable \n\n";
-    else
-        cout << "This database is in perfect condition, 10/10\n\n";
-
-    cout << "Thank you for using custom database!! \n\n";
-    cout << "Press any key to stop the program : \n\n";
-
-    cin >> anyKey;
-
 
 }
 
@@ -1951,12 +1965,11 @@ void rateDatabase::findPotentialIssues() {
         while (getline(lookForDuplicates, everyLine)) {
 
 
-            if (everyLine[0] == '|')
-                tableFound = true;
+            if (everyLine[0] == '|') tableFound = true;
+               
            
-            if (everyLine == "")
-                tableFound = false;
-
+            if (everyLine == "") tableFound = false;
+               
 
             //if we reached a table we will store the data to a vector of strings to start looking for duplicates
             if (tableFound) {
@@ -2005,6 +2018,71 @@ void rateDatabase::findPotentialIssues() {
         }
     }
     lookForDuplicates.close();
+
+    tableFound = false;
+    
+
+
+    //looking for empty table cells:
+    std::ifstream checkForEmptyTableCells(databaseName);
+    bool emptyCells = false;
+    barNumber = 0;
+    std::string tableCell = "", onlyCharacters = "";
+    size_t emptyCellsNumber = 0;
+
+    if (checkForEmptyTableCells.is_open()) {
+
+        std::string eachLine = "";
+
+        while (getline(checkForEmptyTableCells, eachLine)) {
+
+            //if the first character of this string is '|', we reached a table
+            if (eachLine[0] == '|') tableFound = true;
+            else if (eachLine[0] != '|') {
+                tableFound = false;
+            }
+
+
+            //if we found a table
+            if (tableFound) {
+
+                //look inside each table row for empty table cells
+                for (char ch : eachLine) {
+
+                    if (ch == '|') barNumber++;
+
+                    if(barNumber < 2 && ch != '|')
+                    tableCell += ch;
+
+                    if (barNumber == 2) {
+                        barNumber--;
+
+                        //if we find a character that is not a white space we add it string: 'onlyCharacters'
+                        for (char ch : tableCell)
+                            if (ch != ' ') onlyCharacters += ch;
+
+                        //if we find an empty table cell
+                        if (onlyCharacters.length() == 0) {
+                            emptyCells = true;
+                        }
+
+                        tableCell = "";
+                        onlyCharacters = "";
+
+                        if (emptyCells)
+                            emptyCellsNumber++;
+                    }
+                }
+
+                barNumber = 0;
+
+            }
+
+        }
+        checkForEmptyTableCells.close();
+    }
+
+
  
-    giveRating(duplicatesInTables, emptyDatabase);
+    giveRating(duplicatesInTables, emptyDatabase, emptyCells, emptyCellsNumber);
 }

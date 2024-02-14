@@ -12,6 +12,7 @@
 int main()
 {
     
+    
     //calling the first function of our program to promp the user for registration/log in
     registerLogin();
 
@@ -34,11 +35,15 @@ int main()
     if (newUserChoice != 1)
         exit(0);
 
+    
+
    //creating an object of this class to call its functions
     rateDatabase callFunctions;
 
     //calling the function of class 'rateDatabase' to search for potential issues and create a rating
     callFunctions.findPotentialIssues();
+
+    
 
     
     return 0;
